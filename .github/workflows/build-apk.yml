@@ -14,7 +14,7 @@ jobs:
       - name: Descargar proyecto
         uses: actions/checkout@v4
 
-      - name: Instalar Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -44,18 +44,33 @@ jobs:
 
       - name: Crear buildozer.spec
         run: |
-          buildozer init
+          cat > buildozer.spec <<'EOF'
+          [app]
 
-      - name: Configurar Buildozer
-        run: |
-          sed -i 's/^title = .*/title = Security Biker/' buildozer.spec
-          sed -i 's/^package.name = .*/package.name = securitybiker/' buildozer.spec
-          sed -i 's/^package.domain = .*/package.domain = org.securitybiker/' buildozer.spec
-          sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,jpeg,kv,atlas/' buildozer.spec
-          sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0,plyer==2.1.0/' buildozer.spec
-          sed -i 's/^# *android.permissions = .*/android.permissions = android.permission.ACCESS_FINE_LOCATION, android.permission.ACCESS_COARSE_LOCATION, android.permission.CALL_PHONE/' buildozer.spec
+          title = Security Biker
+          package.name = securitybiker
+          package.domain = org.securitybiker
 
-      - name: Crear APK
+          source.dir = .
+          source.include_exts = py,png,jpg,jpeg,kv,atlas
+
+          version = 1.0
+
+          requirements = python3,kivy==2.3.0,plyer==2.1.0
+
+          orientation = portrait
+
+          fullscreen = 0
+
+          android.permissions = ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,CALL_PHONE
+
+          [buildozer]
+
+          log_level = 2
+          warn_on_root = 1
+          EOF
+
+      - name: Construir APK
         run: |
           buildozer -v android debug
 
