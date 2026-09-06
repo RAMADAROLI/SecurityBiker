@@ -1,29 +1,66 @@
-name: Crear APK Security Biker
+name: Build Security Biker APK
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
-  build-android:
-    name: Generar APK Android
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Descargar proyecto
         uses: actions/checkout@v4
 
-      - name: Compilar aplicación con Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+      - name: Instalar Python
+        uses: actions/setup-python@v5
         with:
-          workdir: .
-          buildozer_version: stable
+          python-version: "3.11"
+
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            autoconf \
+            libtool \
+            pkg-config \
+            zlib1g-dev \
+            libncurses5-dev \
+            libncursesw5-dev \
+            cmake \
+            libffi-dev \
+            libssl-dev
+
+      - name: Instalar Buildozer
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer cython==0.29.36
+
+      - name: Crear buildozer.spec
+        run: |
+          buildozer init
+
+      - name: Configurar Buildozer
+        run: |
+          sed -i 's/^title = .*/title = Security Biker/' buildozer.spec
+          sed -i 's/^package.name = .*/package.name = securitybiker/' buildozer.spec
+          sed -i 's/^package.domain = .*/package.domain = org.securitybiker/' buildozer.spec
+          sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,jpeg,kv,atlas/' buildozer.spec
+          sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0,plyer==2.1.0/' buildozer.spec
+          sed -i 's/^# *android.permissions = .*/android.permissions = android.permission.ACCESS_FINE_LOCATION, android.permission.ACCESS_COARSE_LOCATION, android.permission.CALL_PHONE/' buildozer.spec
+
+      - name: Crear APK
+        run: |
+          buildozer -v android debug
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: SecurityBiker-APK
-          path: ${{ steps.buildozer.outputs.filename }}
+          name: Security-Biker-APK
+          path: bin/*.apk
