@@ -1,0 +1,113 @@
+#:kivy 2.2.0
+
+<SecurityBikerLayout>:
+    orientation: "vertical"
+    padding: dp(20)
+    spacing: dp(14)
+    canvas.before:
+        Color:
+            rgba: 0.055, 0.055, 0.055, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Label:
+        text: "SECURITY BIKER"
+        font_size: "28sp"
+        bold: True
+        color: 1, 1, 1, 1
+        size_hint_y: None
+        height: dp(42)
+
+    Label:
+        text: "Tu seguridad siempre contigo"
+        font_size: "16sp"
+        color: 0.65, 0.65, 0.65, 1
+        size_hint_y: None
+        height: dp(28)
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: dp(18)
+        spacing: dp(8)
+        size_hint_y: None
+        height: dp(116)
+        canvas.before:
+            Color:
+                rgba: 0.12, 0.12, 0.12, 1
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(18), dp(18), dp(18), dp(18)]
+
+        Label:
+            text: "ESTADO DEL SISTEMA"
+            bold: True
+            color: 0, 1, 0.53, 1
+
+        Label:
+            text: root.status_text
+            font_size: "17sp"
+            color: 1, 1, 1, 1
+            halign: "center"
+            text_size: self.size
+
+    Label:
+        text: root.location_text
+        color: 0.75, 0.75, 0.75, 1
+        size_hint_y: None
+        height: dp(30)
+        halign: "center"
+        text_size: self.size
+
+    Label:
+        text: root.gps_text
+        color: 0, 1, 0.53, 1
+        size_hint_y: None
+        height: dp(24)
+        halign: "center"
+        text_size: self.size
+
+    Button:
+        text: "VER MI UBICACION"
+        font_size: "18sp"
+        background_normal: ""
+        background_color: 0.13, 0.59, 0.95, 1
+        size_hint_y: None
+        height: dp(58)
+        on_release: root.show_location()
+
+    Button:
+        text: "SIMULAR ACCIDENTE"
+        font_size: "18sp"
+        background_normal: ""
+        background_color: 0.95, 0.58, 0.05, 1
+        size_hint_y: None
+        height: dp(58)
+        on_release: root.simulate_accident()
+
+    Button:
+        text: "BOTON DE EMERGENCIA SOS"
+        font_size: "18sp"
+        bold: True
+        background_normal: ""
+        background_color: 0.89, 0.22, 0.18, 1
+        size_hint_y: None
+        height: dp(68)
+        on_release: root.send_sos()
+
+    Widget:
+
+    Label:
+        text: "Conductor: Motociclista | Vehiculo: Motocicleta"
+        color: 0.75, 0.75, 0.75, 1
+        size_hint_y: None
+        height: dp(28)
+        halign: "center"
+        text_size: self.size
+
+    Label:
+        text: "Security Biker - 2026"
+        color: 0.45, 0.45, 0.45, 1
+        size_hint_y: None
+        height: dp(28)
