@@ -40,7 +40,6 @@ jobs:
 
       - name: Crear buildozer.spec
         run: |
-          buildozer init
           sed -i 's/^title = .*/title = Security Biker/' buildozer.spec
           sed -i 's/^package.name = .*/package.name = securitybiker/' buildozer.spec
           sed -i 's/^package.domain = .*/package.domain = org.securitybiker/' buildozer.spec
