@@ -19,23 +19,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Instalar dependencias del sistema
+      - name: Instalar dependencias
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            git \
-            zip \
-            unzip \
+            git zip unzip \
             openjdk-17-jdk \
-            autoconf \
-            libtool \
-            pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            cmake \
-            libffi-dev \
-            libssl-dev
+            autoconf automake libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            libtinfo5 cmake libffi-dev libssl-dev
 
       - name: Instalar Buildozer
         run: |
@@ -46,29 +38,43 @@ jobs:
         run: |
           cat > buildozer.spec <<'EOF'
           [app]
-
           title = Security Biker
           package.name = securitybiker
           package.domain = org.securitybiker
-
           source.dir = .
           source.include_exts = py,png,jpg,jpeg,kv,atlas
-
           version = 1.0
-
           requirements = python3,kivy==2.3.0,plyer==2.1.0
-
           orientation = portrait
-
           fullscreen = 0
-
           android.permissions = ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,CALL_PHONE
 
           [buildozer]
-
           log_level = 2
           warn_on_root = 1
           EOF
+
+      - name: Preparar Android SDK
+        run: |
+          buildozer android debug || true
+
+      - name: Instalar Android Build Tools
+        run: |
+          SDK="$HOME/.buildozer/android/platform/android-sdk"
+
+          if [ -f "$SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          elif [ -f "$SDK/tools/bin/sdkmanager" ]; then
+            SDKMANAGER="$SDK/tools/bin/sdkmanager"
+          else
+            echo "No se encontró sdkmanager"
+            find "$HOME/.buildozer/android" -name sdkmanager -type f
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --licenses || true
+          yes | "$SDKMANAGER" "build-tools;35.0.0"
+          yes | "$SDKMANAGER" "platform-tools"
 
       - name: Construir APK
         run: |
@@ -79,3 +85,4 @@ jobs:
         with:
           name: Security-Biker-APK
           path: bin/*.apk
+          
