@@ -1,91 +1,58 @@
-name: Build Android APK with Buildozer
+name: Build Security Biker APK
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout repository
+      - name: Descargar proyecto
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - name: Python
+        uses: actions/setup-python@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          python-version: "3.11"
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - name: Java
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          distribution: temurin
+          java-version: "17"
 
-      - name: Install System Dependencies
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Android
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            git \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixin-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            libsqlite3-dev \
-            sqlite3 \
-            bzip2 \
-            libbz2-dev \
-            libssl-dev \
-            openssl \
-            libffi-dev \
-            libgmp3-dev \
-            libmpc-dev \
-            lld \
-            zip \
-            unzip
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses || true
 
-      - name: Install Buildozer and Cython
+      - name: Dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install --upgrade buildozer cython
+          pip install buildozer cython==0.29.36
 
-      - name: Accept Android SDK Licenses & Fix SDK Root
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
+      - name: Crear buildozer.spec
         run: |
-          # Crear directorio previo para evitar conflictos de rutas
-          mkdir -p $ANDROID_HOME
-          
-          # Pre-descarga manual o manejo de licencias indicando explícitamente --sdk_root
-          SDK_MANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          if [ -f "$SDK_MANAGER" ]; then
-            yes | $SDK_MANAGER --sdk_root=$ANDROID_HOME --licenses || true
-          fi
+          buildozer init
+          sed -i 's/^title = .*/title = Security Biker/' buildozer.spec
+          sed -i 's/^package.name = .*/package.name = securitybiker/' buildozer.spec
+          sed -i 's/^package.domain = .*/package.domain = org.securitybiker/' buildozer.spec
+          sed -i 's/^requirements = .*/requirements = python3,kivy==2.3.0,plyer==2.1.0/' buildozer.spec
+          sed -i 's/^# *android.permissions = .*/android.permissions = android.permission.ACCESS_FINE_LOCATION,android.permission.ACCESS_COARSE_LOCATION,android.permission.CALL_PHONE/' buildozer.spec
 
-      - name: Build APK with Buildozer
-        env:
-          ANDROID_HOME: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
-          ANDROID_SDK_ROOT: ${{ github.workspace }}/.buildozer/android/platform/android-sdk
+      - name: Crear APK
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
-      - name: Upload APK Artifact
+      - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: python-app-apk
+          name: Security-Biker-APK
           path: bin/*.apk
